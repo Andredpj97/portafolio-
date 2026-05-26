@@ -1,0 +1,35 @@
+# Robots.txt para Mi Farmacia
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+Disallow: /*?*sort=
+Disallow: /*?*filter=
+
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Otros bots
+User-agent: *
+Allow: /
+Crawl-delay: 5
+
+# Sitemap
+Sitemap: https://mifarmacia.com/sitemap.xml
+
+# Robots disallowed
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

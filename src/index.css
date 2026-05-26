@@ -1,0 +1,80 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+	--brand-font: 'Space Grotesk', 'Segoe UI', sans-serif;
+	--premium-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--premium-duration: 500ms;
+}
+
+.dark {
+	background-color: #1f2937;
+	color: #f9fafb;
+}
+
+.brand-font {
+	font-family: var(--brand-font);
+}
+
+@keyframes brand-marquee {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-50%);
+	}
+}
+
+.marquee-track {
+	animation: brand-marquee 22s linear infinite;
+}
+
+.hide-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+.search-results-scroll {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(107, 114, 128, 0.45) rgba(229, 231, 235, 0.9);
+}
+
+.search-results-scroll::-webkit-scrollbar {
+	width: 8px;
+}
+
+.search-results-scroll::-webkit-scrollbar-track {
+	background: rgba(229, 231, 235, 0.9);
+	border-radius: 9999px;
+}
+
+.search-results-scroll::-webkit-scrollbar-thumb {
+	background: rgba(107, 114, 128, 0.45);
+	border-radius: 9999px;
+	border: 2px solid rgba(229, 231, 235, 0.9);
+}
+
+.search-results-scroll::-webkit-scrollbar-thumb:hover {
+	background: rgba(107, 114, 128, 0.65);
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary,
+[role='button'],
+[role='link'] {
+	transition-timing-function: var(--premium-ease);
+	transition-duration: var(--premium-duration);
+}
+
+[class*='transition'] {
+	transition-timing-function: var(--premium-ease) !important;
+	transition-duration: var(--premium-duration) !important;
+}

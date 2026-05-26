@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Compra medicamentos, suplementos y productos de cuidado personal en línea. Entrega rápida y segura." />
+    <meta name="keywords" content="medicamentos, farmacia, suplementos, cuidado personal, comprar online" />
+    <meta name="author" content="Mi Farmacia" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#22c55e" />
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="apple-touch-icon" href="/vite.svg" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mi Farmacia" />
+    
+    <!-- Open Graph para redes sociales -->
+    <meta property="og:title" content="Mi Farmacia - Tienda Online de Medicamentos" />
+    <meta property="og:description" content="Compra medicamentos, suplementos y productos de cuidado personal en línea. Entrega rápida y segura." />
+    <meta property="og:image" content="/vite.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mi Farmacia" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mi Farmacia - Tienda Online de Medicamentos" />
+    <meta name="twitter:description" content="Compra medicamentos, suplementos y productos de cuidado personal en línea." />
+    <meta name="twitter:image" content="/vite.svg" />
+    
+    <title>Mi Farmacia - Tienda Online de Medicamentos</title>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration para PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(
+                    (reg) => {
+                        console.log('✅ Service Worker registrado:', reg)
+                    },
+                    (err) => {
+                        console.log('❌ Error registrando Service Worker:', err)
+                    }
+                )
+            })
+        }
+    </script>
+</body>
+</html>

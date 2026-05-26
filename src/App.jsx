@@ -1,0 +1,1682 @@
+import Header from './components/Header'
+import CategoriesSection from './sections/CategoriesSection'
+import WelcomeSection from './sections/WelcomeSection'
+import SpecialOffersSection from './sections/SpecialOffersSection'
+import Footer from './components/Footer'
+import ScrollReveal from './components/ScrollReveal'
+import CartPage from './pages/CartPage'
+import OrderHistory from './pages/OrderHistory'
+import ProductDetail from './pages/ProductDetail'
+import ProductsPage from './pages/ProductsPage'
+import { CartProvider } from './context/CartContext'
+import HomeCarousel from './sections/HomeCarousel'
+import BenefitsStrip from './sections/BenefitsStrip'
+import TopSellersSection from './sections/TopSellersSection'
+import BrandsStrip from './sections/BrandsStrip'
+import HomeCta from './sections/HomeCta'
+
+/**
+ * Componente principal de la aplicación de la tienda de farmacia.
+ * Renderiza todos los componentes de la página de manera estructurada.
+ */
+import { useState, useEffect, useMemo } from 'react'
+import { useAuth } from './context/AuthContext'
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
+import { PREMIUM_EASE } from './utils/animationTokens'
+
+const sampleProducts = [
+  // Medicamentos
+  {
+    id: 1,
+    name: 'Ibuprofeno 400mg',
+    brand: 'Genfar',
+    price: '6.50',
+    image: '/images/medicamentos/analgesicos/1)ibuprofeno-400mg.jpg',
+    description: 'Analgésico y antiinflamatorio de rápida acción para dolores y fiebres.',
+    details: '400mg por tableta | 20 tabletas | Recubierto de película',
+    benefits: ['Alivia dolor', 'Reduce inflamación', 'Baja fiebre'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 46,
+    name: 'Ibuprofeno+Metocarbamol (200+500)Mg Tableta Recubierta',
+    brand: 'MK',
+    price: '13.50',
+    image: '/images/medicamentos/analgesicos/3)ibuprofeno+metocarbamol_(200+500)Mg_tabletaRecubierta_CajaX30_MK.png',
+    description: 'Combinación de analgésico e antiinflamatorio con relajante muscular para dolores con tensión.',
+    details: '200mg Ibuprofeno + 500mg Metocarbamol | 30 tabletas | Recubierto de película',
+    benefits: ['Alivia dolor intenso', 'Relaja músculos', 'Reduce inflamación'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 47,
+    name: 'Ibuprofeno 800mg',
+    brand: 'Genfar',
+    price: '9.90',
+    image: '/images/medicamentos/analgesicos/2)ibuprofeno-800mg.jpg',
+    description: 'Analgésico y antiinflamatorio para dolores intensos y fiebre.',
+    details: '800mg por tableta | 20 tabletas | Recubierto de película',
+    benefits: ['Alivia dolor intenso', 'Reduce inflamación', 'Baja fiebre'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 2,
+    name: 'Paracetamol Jarabe Infantil',
+    brand: 'MK',
+    price: '8.50',
+    image: '/images/medicamentos/analgesicos/4)Paracetamol-Jarabe-Infantil-MK-120Ml.jpg',
+    description: 'Jarabe infantil para aliviar dolores y fiebres en niños con sabor agradable.',
+    details: '120ml | Apto para niños | Fácil dosificación',
+    benefits: ['Alivia fiebre', 'Reduce dolor infantil', 'Sabor agradable'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 48,
+    name: 'Paracetamol Comprimidos',
+    brand: 'COMTREX',
+    price: '6.20',
+    image: '/images/medicamentos/analgesicos/5)Paracetamol-Comprimidos-COMTREX-10Tabletas.jpg',
+    description: 'Analgésico rápido para aliviar dolores leves y fever.',
+    details: '500mg por tableta | 10 comprimidos | Acción rápida',
+    benefits: ['Alivia dolor rápidamente', 'Reduce fiebre', 'Fácil de usar'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 49,
+    name: 'Paracetamol Temperyl',
+    brand: "NATURE'S GARDEN",
+    price: '7.80',
+    image: "/images/medicamentos/analgesicos/6)Paracetamol-Temperyl-Tableta-NATURES-GARDEN.jpg",
+    description: 'Analgésico natural de Temperyl para dolores y fiebres.',
+    details: '500mg por tableta | Recubierto | Fórmula natural',
+    benefits: ['Alivia dolor', 'Reduce fiebre', 'Componentes naturales'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 50,
+    name: 'Naproxeno 500mg',
+    brand: 'American Generics',
+    price: '10.50',
+    image: '/images/medicamentos/analgesicos/7)comprar-en-cafam-naproxeno-500-mg-caja-con-10-tabletas-recubiertas-precio.jpg',
+    description: 'Analgésico e antiinflamatorio de acción prolongada para dolores moderados e intensos.',
+    details: '500mg por tableta | 10 tabletas recubiertas | Acción prolongada',
+    benefits: ['Alivia dolor intenso', 'Reduce inflamación', 'Acción prolongada'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 51,
+    name: 'Naproxeno 250mg',
+    brand: 'American Generics',
+    price: '7.20',
+    image: '/images/medicamentos/analgesicos/8)comprar-en-cafam-naproxeno-250-mg-caja-con-10-tabletas-recubiertas.webp',
+    description: 'Analgésico e antiinflamatorio de dosis moderada para dolores leves a moderados.',
+    details: '250mg por tableta | 10 tabletas recubiertas',
+    benefits: ['Alivia dolor', 'Reduce inflamación', 'De fácil uso'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 52,
+    name: 'Naproxeno 500mg Recubierto',
+    brand: 'Genfar',
+    price: '11.00',
+    image: '/images/medicamentos/analgesicos/9)comprar-en-cafam-naproxeno-500-mg-caja-con-10-tabletas-genfar.webp',
+    description: 'Genfar Naproxeno recubierto para máxima protección gástrica y acción potente.',
+    details: '500mg por tableta | 10 tabletas | Recubierto protector',
+    benefits: ['Alivia dolor intenso', 'Protección gástrica', 'Acción rápida'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 53,
+    name: 'Naproxeno 250mg Genfar',
+    brand: 'Genfar',
+    price: '7.80',
+    image: '/images/medicamentos/analgesicos/10)comprar-en-cafam-naproxeno-250-mg-caja-con-10-comprimidos-genfar.webp',
+    description: 'Naproxeno Genfar en dosis de 250mg para dolores leves.',
+    details: '250mg por comprimido | 10 comprimidos | De Genfar',
+    benefits: ['Alivia dolor leve', 'Reduce fiebre', 'Marca confiable'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 54,
+    name: 'Diclofenaco 50mg',
+    brand: 'Genfar',
+    price: '8.90',
+    image: '/images/medicamentos/analgesicos/11)comprar-en-cafam-diclofenaco-50-mg-caja-con-30-tabletas-recubiertas-genfar-precio.webp',
+    description: 'Antiinflamatorio potente para dolor e inflamación moderada.',
+    details: '50mg por tableta | 30 tabletas recubiertas',
+    benefits: ['Reduce inflamación', 'Alivia dolor', 'De larga duración'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 55,
+    name: 'Amoxicilina 875mg Tabletas',
+    brand: 'Genfar',
+    price: '11.50',
+    image: '/images/medicamentos/antibioticos/1)Amoxicilina-Genfar-875-Mg-14-Tabletas.webp',
+    description: 'Antibiótico de amplio espectro para infecciones bacterianas comunes.',
+    details: '875mg por tableta | 14 tabletas',
+    benefits: ['Combate infecciones', 'Amplio espectro', 'Marca confiable'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 56,
+    name: 'Amoxicilina 500mg Cápsulas x50',
+    brand: 'La Santé',
+    price: '10.80',
+    image: '/images/medicamentos/antibioticos/2)comprar-en-cafam-amoxicilina-500-mg-caja-con-50-capsulas-precio.webp',
+    description: 'Amoxicilina en cápsulas para tratamiento de infecciones bacterianas.',
+    details: '500mg por cápsula | 50 cápsulas',
+    benefits: ['Tratamiento efectivo', 'Uso frecuente', 'Buena tolerancia'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 155,
+    name: 'Amoxicilina 500mg Cápsulas x60',
+    brand: 'MK',
+    price: '12.20',
+    image: '/images/medicamentos/antibioticos/3)comprar-en-cafam-amoxicilina-500-mg-caja-con-60-capsulas-precio.webp',
+    description: 'Presentación de 60 cápsulas para tratamientos indicados por más días.',
+    details: '500mg por cápsula | 60 cápsulas',
+    benefits: ['Mayor cantidad', 'Antibiótico de amplio uso', 'Práctico para tratamiento completo'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 156,
+    name: 'Amoxicilina 500mg Cápsulas x50 Plus',
+    brand: 'Genfar',
+    price: '10.90',
+    image: '/images/medicamentos/antibioticos/4)comprar-en-cafam-amoxicilina-500-mg-caja-con-50-capsulas-precio.webp',
+    description: 'Alternativa antibiótica para infecciones respiratorias y de piel.',
+    details: '500mg por cápsula | 50 cápsulas',
+    benefits: ['Acción bactericida', 'Presentación práctica', 'Precio accesible'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 157,
+    name: 'Amoxicilina 500mg Cápsulas x50 Max',
+    brand: 'American Generics',
+    price: '11.10',
+    image: '/images/medicamentos/antibioticos/5)comprar-en-cafam-amoxicilina-500-mg-caja-con-50-capsulas-precio.webp',
+    description: 'Antibiótico oral para cuadros infecciosos sensibles a amoxicilina.',
+    details: '500mg por cápsula | 50 cápsulas',
+    benefits: ['Cobertura común', 'Fácil administración', 'Buena disponibilidad'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 158,
+    name: 'Amoxicilina Suspensión 100ml',
+    brand: 'American Generics',
+    price: '9.70',
+    image: '/images/medicamentos/antibioticos/6)comprar-en-cafam-amoxicilina-polvo-para-reconstituir-frasco-con-100-ml-precio.webp',
+    description: 'Polvo para reconstituir, ideal en pacientes pediátricos según fórmula médica.',
+    details: 'Frasco 100ml | Polvo para suspensión oral',
+    benefits: ['Uso pediátrico', 'Fácil dosificación', 'Buena palatabilidad'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 159,
+    name: 'Azitromicina 500mg Tabletas x3',
+    brand: 'La Santé',
+    price: '13.90',
+    image: '/images/medicamentos/antibioticos/7)comprar-en-Cafam-azitromicina-500-mg-caja-con-3-tabletas-precio.webp',
+    description: 'Azitromicina de 500mg para infecciones bacterianas frecuentes.',
+    details: '500mg por tableta | 3 tabletas',
+    benefits: ['Acción antibiótica', 'Dosis corta', 'Fácil administración'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 160,
+    name: 'Azitromicina 500mg Tabletas Cubiertas x3',
+    brand: 'MK',
+    price: '14.20',
+    image: '/images/medicamentos/antibioticos/8)comprar-en-cafam-azitromicina-500-mg-caja-con-3-tabletas-cubiertas-precio.webp',
+    description: 'Presentación cubierta para mejor tolerancia gástrica.',
+    details: '500mg por tableta | 3 tabletas cubiertas',
+    benefits: ['Buena tolerancia', 'Tratamiento breve', 'Uso común'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 161,
+    name: 'Azitromicina 500mg Tabletas Recubiertas x3',
+    brand: 'Genfar',
+    price: '14.50',
+    image: '/images/medicamentos/antibioticos/9)comprar-en-cafam-azitromicina-500-mg-caja-con-3-tabletas-recubiertas-precio.webp',
+    description: 'Azitromicina recubierta para infecciones respiratorias y de piel.',
+    details: '500mg por tableta | 3 tabletas recubiertas',
+    benefits: ['Acción efectiva', 'Dosis corta', 'Fácil de tomar'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 162,
+    name: 'Azitromicina 500mg Cápsulas Duras x3',
+    brand: 'Colmed',
+    price: '14.70',
+    image: '/images/medicamentos/antibioticos/10)comprar-en-cafam-azitromicina-500-mg-caja-con-3-capsulas-duras-precio.webp',
+    description: 'Cápsulas duras de azitromicina para tratamiento antibiótico.',
+    details: '500mg por cápsula | 3 cápsulas duras',
+    benefits: ['Acción antibiótica', 'Dosis corta', 'Uso extendido'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 163,
+    name: 'Azitromicina 500mg Tabletas Recubiertas x3',
+    brand: 'American Generics',
+    price: '13.80',
+    image: '/images/medicamentos/antibioticos/11)comprar-en-cafam-azitromicina-500-mg-caja-con-3-tabletas-recubiertas-american-generics-precio.webp',
+    description: 'Azitromicina American Generics para tratamientos cortos.',
+    details: '500mg por tableta | 3 tabletas recubiertas',
+    benefits: ['Marca confiable', 'Acción antibiótica', 'Fácil administración'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 164,
+    name: 'Azitromicina Suspensión 200mg/5ml 15ml',
+    brand: 'MK',
+    price: '12.40',
+    image: '/images/medicamentos/antibioticos/12)azitromicina-200-mg-ml-frasco-con-15-ml-jeringa-dosificadora.webp',
+    description: 'Suspensión oral con jeringa dosificadora para uso pediátrico.',
+    details: '200mg/5ml | Frasco 15ml',
+    benefits: ['Uso pediátrico', 'Fácil dosificación', 'Buena palatabilidad'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 165,
+    name: 'Tromix 500mg Tabletas x3',
+    brand: 'Tromix',
+    price: '15.20',
+    image: '/images/medicamentos/antibioticos/13)comprar-en-cafam-tromix-500-mg-caja-con-3-tabletas-recubiertas-precio.webp',
+    description: 'Tromix 500mg en tabletas recubiertas para infecciones bacterianas.',
+    details: '500mg por tableta | 3 tabletas recubiertas',
+    benefits: ['Marca reconocida', 'Dosis corta', 'Acción efectiva'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 166,
+    name: 'Azitromicina Suspensión 200mg/5ml 15ml',
+    brand: 'Genfar',
+    price: '12.10',
+    image: '/images/medicamentos/antibioticos/14)comprar-en-cafam-azitromicina-200-mg-5-ml-polvo-para-suspension-caja-con-frasco-con-15-ml-precio.webp',
+    description: 'Polvo para suspensión oral de azitromicina en frasco de 15ml.',
+    details: '200mg/5ml | Frasco 15ml',
+    benefits: ['Uso pediátrico', 'Fácil preparación', 'Buena tolerancia'],
+    category: 'Medicamentos',
+    type: 'Antibióticos'
+  },
+  {
+    id: 57,
+    name: 'Diclofenaco 75mg Intramuscular',
+    brand: 'MK',
+    price: '14.50',
+    image: '/images/medicamentos/analgesicos/14)comprar-en-cafam-diclofenaco-mk-75-mg-intramuscular-caja-con-5-ampollas-precio.webp',
+    description: 'Diclofenaco potente en presentación intramuscular para dolor e inflamación severa.',
+    details: '75mg por ampolla | 5 ampollas | Intramuscular',
+    benefits: ['Acción rápida', 'Dolor intenso', 'Efecto potente'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 58,
+    name: 'Tramadol Clorhidrato 50mg',
+    brand: 'Genfar',
+    price: '9.50',
+    image: '/images/medicamentos/analgesicos/15)tramadol-clorhidrato-50-mg-caja-con-10-capsulas-genfar.webp',
+    description: 'Analgésico opiode para dolor moderado a intenso.',
+    details: '50mg por cápsula | 10 cápsulas',
+    benefits: ['Alivia dolor intenso', 'Acción prolongada', 'Marca confiable'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 59,
+    name: 'Acetaminofén + Tramadol 325+375mg',
+    brand: 'Genfar',
+    price: '10.20',
+    image: '/images/medicamentos/analgesicos/16)comprar-en-cafam-acetaminofen-tramadol-325-375-mg-caja-con-10-tabletas-recubiertas-precio.webp',
+    description: 'Combinación de analgésicos para dolor moderado effectively.',
+    details: '325mg Acetaminofén + 375mg Tramadol | 10 tabletas recubiertas',
+    benefits: ['Alivia dolor', 'Acción dual', 'Efecto sinérgico'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 60,
+    name: 'Tramadol 50mg',
+    brand: 'MK',
+    price: '8.80',
+    image: '/images/medicamentos/analgesicos/17)comprar-en-farmalisto-tramadol-50-mg-caja-con-10-capsulas-tecnoquimicas-precio.webp',
+    description: 'Tramadol Tecnoquímicas para dolor moderado a intenso.',
+    details: '50mg por cápsula | 10 cápsulas | Tecnoquímicas',
+    benefits: ['Alivia dolor', 'Rápida absorción', 'Marca confiable'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 61,
+    name: 'Tramadol + Acetaminofén 375+325mg',
+    brand: 'MK',
+    price: '10.50',
+    image: '/images/medicamentos/analgesicos/18)comprar-en-cafam-tramadol-acetaminofen-375-325-mg-caja-con-10-tabletas-cubiertas-precio.webp',
+    description: 'Combinación potente de Tramadol y Acetaminofén para dolor intenso.',
+    details: '375mg Tramadol + 325mg Acetaminofén | 10 tabletas cubiertas',
+    benefits: ['Alivia dolor intenso', 'Efecto prolongado', 'Combinación efectiva'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 62,
+    name: 'Loratadina 10mg',
+    brand: 'American Generics',
+    price: '6.50',
+    image: '/images/medicamentos/alergicos/1)comprar-en-cafam-loratadina-10-mg-caja-con-20-tabletas-precio.webp',
+    description: 'Antihistamínico para alergias, urticaria y rinitis alérgica.',
+    details: '10mg por tableta | 20 tabletas',
+    benefits: ['Alivia alergias', 'Sin somnolencia', 'Acción prolongada'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 63,
+    name: 'Loratadina 10mg Comprimidos',
+    brand: 'Genfar',
+    price: '5.80',
+    image: '/images/medicamentos/alergicos/2)comprar-en-cafam-loratadina-10-mg-caja-con-10-comprimidos-precio.webp',
+    description: 'Loratadina en comprimidos para aliviar síntomas alérgicos.',
+    details: '10mg por comprimido | 10 comprimidos',
+    benefits: ['Reduce picazón', 'Alivia estornudos', 'No causa sueño'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 65,
+    name: 'Loratadina 10mg Tabletas',
+    brand: 'MK',
+    price: '6.00',
+    image: '/images/medicamentos/alergicos/4)comprar-en-cafam-loratadina-10-mg-caja-con-10-tabletas-precio.webp',
+    description: 'Loratadina en presentación de tabletas para alergias.',
+    details: '10mg por tableta | 10 tabletas',
+    benefits: ['Alivia síntomas alérgicos', 'Fácil de usar', 'Rápida acción'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 66,
+    name: 'Loratadina 1mg Jarabe',
+    brand: 'MK',
+    price: '7.50',
+    image: '/images/medicamentos/alergicos/5)comprar-en-cafam-loratadina-1-mg-caja-con-frasco-con-100-ml-jeringa-dosificadora-precio.webp',
+    description: 'Loratadina en jarabe infantil para alergias en niños.',
+    details: '1mg/ml | 100ml + jeringa dosificadora | Apto para niños',
+    benefits: ['Fácil dosificación', 'Sabor agradable', 'Apto para menores'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 69,
+    name: 'Cetirizina 10mg',
+    brand: 'American Generics',
+    price: '6.80',
+    image: '/images/medicamentos/alergicos/8)comprar-en-cafam-cetirizina-10-mg-caja-con-10-tabletas-recubiertas-precio.webp',
+    description: 'Antihistamínico potente para alergias y urticaria.',
+    details: '10mg por tableta | 10 tabletas recubiertas',
+    benefits: ['Alivia alergias', 'Acción rápida', 'Larga duración'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 70,
+    name: 'Cetirizina Jarabe 60ml',
+    brand: 'American Generics',
+    price: '7.20',
+    image: '/images/medicamentos/alergicos/9)coprar-en-cafam-cetirizina-jarabe-caja-con-frasco-con-60-ml-ag-precio.webp',
+    description: 'Cetirizina en jarabe para niños con alergias.',
+    details: '60ml | Jarabe | AG',
+    benefits: ['Alivio infantil', 'Sabor agradable', 'Fácil dosificación'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 71,
+    name: 'Cetirizina 10mg MK',
+    brand: 'MK',
+    price: '7.50',
+    image: '/images/medicamentos/alergicos/10)comprar-en-cafam-cetirizina-10-mg-mk-caja-con-10-tabletas-recubiertas-precio.webp',
+    description: 'Cetirizina MK de máxima potencia para alergias.',
+    details: '10mg por tableta | 10 tabletas recubiertas | MK',
+    benefits: ['Potencia superior', 'Marca confiable', 'Efectivo'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 72,
+    name: 'Cetirizina Gotas 15ml',
+    brand: 'MK',
+    price: '8.00',
+    image: '/images/medicamentos/alergicos/11)comprar-en-cafam-mk-cetirizina-gotas-1-caja-con-frasco-gotero-con-15-ml-precio.webp',
+    description: 'Cetirizina en gotas para dosificación precisa en niños.',
+    details: '15ml | Frasco gotero | MK',
+    benefits: ['Dosificación precisa', 'Apto para menores', 'Fácil de usar'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 73,
+    name: 'Cetirizina Jarabe 60ml',
+    brand: 'MK',
+    price: '7.80',
+    image: '/images/medicamentos/alergicos/12)cetirizina-01-caja-con-frasco-con-60-ml.webp',
+    description: 'Cetirizina en jarabe infantil de marca confiable.',
+    details: '60ml | Jarabe | Genfar',
+    benefits: ['Alivio efectivo', 'Sabor infantil', 'Marca confiable'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 74,
+    name: 'Desloratadina 5mg American Generics',
+    brand: 'American Generics',
+    price: '9.50',
+    image: '/images/medicamentos/alergicos/13)comprar-en-cafam-desloratadina-5-mg-caja-con-10-tabletas-recubiertas-american-generics-precio.webp',
+    description: 'Desloratadina American Generics para alergia potente.',
+    details: '5mg por tableta | 10 tabletas recubiertas',
+    benefits: ['Alivio superior', 'Larga duración', 'Marca de calidad'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 75,
+    name: 'Desloratadina Jarabe 60ml',
+    brand: 'American Generics',
+    price: '8.50',
+    image: '/images/medicamentos/alergicos/14)comprar-en-cafam-desloratadina-jarabe-frasco-con-60-ml-precio.webp',
+    description: 'Desloratadina en jarabe para niños alérgicos.',
+    details: '60ml | Jarabe | Genfar',
+    benefits: ['Alivio infantil', 'Sabor agradable', 'Apto para menores'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 76,
+    name: 'Desloratadina 5mg Tabletas',
+    brand: 'MK',
+    price: '8.80',
+    image: '/images/medicamentos/alergicos/15)comprar-en-cafam-desloratadina-5-mg-caja-con-10-tabletas-recubiertas-precio.webp',
+    description: 'Desloratadina en tabletas recubiertas para máximo alivio.',
+    details: '5mg por tableta | 10 tabletas recubiertas',
+    benefits: ['Potencia superior', 'Larga duración', 'Acción rápida'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 77,
+    name: 'Desloratadina 5mg Comprimidos Genfar',
+    brand: 'Genfar',
+    price: '8.90',
+    image: '/images/medicamentos/alergicos/16)comprar-en-cafam-desloratadina-5-mg-caja-con-10-comprimidos-recubiertos-genfar-precio.webp',
+    description: 'Desloratadina Genfar en comprimidos para alivio potente.',
+    details: '5mg por comprimido | 10 comprimidos recubiertos',
+    benefits: ['Marca confiable', 'Efecto potente', 'Fácil de usar'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 78,
+    name: 'Desloratadina Jarabe 0.05 Genfar',
+    brand: 'Genfar',
+    price: '9.00',
+    image: '/images/medicamentos/alergicos/17)comprar-en-cafam-genfar-desloratadina-jarabe-005-caja-con-frasco-con-60-ml-precio.webp',
+    description: 'Desloratadina jarabe concentrado Genfar 0.05 para máxima potencia.',
+    details: '0.05 | 60ml | Genfar',
+    benefits: ['Concentración máxima', 'Alivio superior', 'Marca confiable'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 79,
+    name: 'Desloratadina 0.05 MK',
+    brand: 'MK',
+    price: '8.70',
+    image: '/images/medicamentos/alergicos/18)comprar-en-cafam-desloratadina-005-mk-frasco-con-60-ml-precio.webp',
+    description: 'Desloratadina MK jarabe concentrado 0.05 para niños.',
+    details: '0.05 | 60ml | MK',
+    benefits: ['Concentración efectiva', 'Apto para menores', 'Sabor agradable'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 80,
+    name: 'Fexofenadina 120mg',
+    brand: 'American Generics',
+    price: '9.80',
+    image: '/images/medicamentos/alergicos/19)comprar-en-cafam-fexofenadina-120-mg-caja-con-10-tabletas-recubiertas-precio.webp',
+    description: 'Antihistamínico moderno para alergias sin somnolencia.',
+    details: '120mg por tableta | 10 tabletas recubiertas',
+    benefits: ['Alivia alergias', 'Sin somnolencia', 'Acción rápida'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 81,
+    name: 'Fexofenadina 120mg Cubiertas',
+    brand: 'MK',
+    price: '9.50',
+    image: '/images/medicamentos/alergicos/20)comprar-en-cafam-fexofenadina-120-mg-caja-con-10-tabletas-cubiertas-precio.webp',
+    description: 'Fexofenadina en tabletas cubiertas 120mg para alergias.',
+    details: '120mg por tableta | 10 tabletas cubiertas',
+    benefits: ['Alivio rápido', 'Efectividad probada', 'Sin sueño'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 82,
+    name: 'Fexofenadina Suspensión 30mg/5ml',
+    brand: 'MK',
+    price: '8.90',
+    image: '/images/medicamentos/alergicos/21)comprar-en-cafam-fexofenadina-suspension-oral-30-mg-5-ml-caja-con-frasco-con-150-ml-precio.webp',
+    description: 'Fexofenadina en suspensión oral para niños con alergias.',
+    details: '30mg/5ml | 150ml | Suspensión infantil',
+    benefits: ['Dosificación fácil', 'Apto para menores', 'Sin sabor amargo'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 83,
+    name: 'Fexofenadina 180mg',
+    brand: 'MK',
+    price: '11.20',
+    image: '/images/medicamentos/alergicos/22)comprar-en-cafam-fexofenadina-180-mg-caja-con-10-tabletas-precio.webp',
+    description: 'Fexofenadina dosis alta 180mg para alergias severas.',
+    details: '180mg por tableta | 10 tabletas | Dosis potente',
+    benefits: ['Potencia superior', 'Alivio prolongado', 'Máxima eficacia'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 84,
+    name: 'Fexofenadina 180mg Recubiertas',
+    brand: 'American Generics',
+    price: '11.50',
+    image: '/images/medicamentos/alergicos/23)comprar-en-cafam-fexofenadina-180-mg-caja-10-tabletas-recubiertas-precio.webp',
+    description: 'Fexofenadina 180mg en tabletas recubiertas para máximo alivio.',
+    details: '180mg por tableta | 10 tabletas recubiertas',
+    benefits: ['Dosis alta', 'Acción prolongada', 'Máxima protección'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+  {
+    id: 85,
+    name: 'Fexofenadina 30mg/5ml Pediátrico',
+    brand: 'Ecar',
+    price: '8.50',
+    image: '/images/medicamentos/alergicos/24)fexofenadina-30-mg-5-ml-pediatrico-sabor-tuttifruti-150-ml.webp',
+    description: 'Fexofenadina pediátrica con sabor tutti fruti para niños alérgicos.',
+    details: '30mg/5ml | 150ml | Sabor tutti fruti',
+    benefits: ['Sabor agradable', 'Apto para menores', 'Fácil administración'],
+    category: 'Medicamentos',
+    type: 'Alergicos'
+  },
+
+  // Cuidado Personal
+  {
+    id: 6,
+    name: 'Jarabe para la tos',
+    brand: 'CoughFree',
+    price: '7.20',
+      image: '/images/cuidado-personal/general/1)comprar-en-cafam-jabon-dove-baby-humectacion-sensible-frasco-con-400-ml-precio.jpg',
+    description: 'Jarabe expectorante que calma la tos seca y ayuda a despejar las vías respiratorias.',
+    details: '200ml | Sabor a cereza | Sin colorantes artificiales',
+    benefits: ['Calma tos seca', 'Descongestiona', 'Sabor agradable'],
+    category: 'Cuidado Personal',
+    type: 'General'
+  },
+  {
+    id: 7,
+    name: 'Crema hidratante',
+    brand: 'SkinCare',
+    price: '15.00',
+    image: '/vite.svg',
+    description: 'Crema para hidratar y suavizar la piel.',
+    details: '100ml | Para todo tipo de piel',
+    benefits: ['Hidrata', 'Suaviza'],
+    category: 'Cuidado Personal',
+    type: 'Cremas'
+  },
+  {
+    id: 8,
+    name: 'Protector solar SPF50',
+    brand: 'SunBlock',
+    price: '18.50',
+    image: '/vite.svg',
+    description: 'Protege la piel de los rayos UV.',
+    details: '50ml | Resistente al agua',
+    benefits: ['Protege del sol', 'Resistente al agua'],
+    category: 'Cuidado Personal',
+    type: 'Protección'
+  },
+  {
+    id: 9,
+    name: 'Gel antibacterial',
+    brand: 'CleanHands',
+    price: '4.50',
+      image: '/images/cuidado-personal/general/2)comprar-en-cafam-toallitas-humedas-winny-aloe-vera-empaque-con-100-unidades-precio.jpg',
+    description: 'Elimina el 99.9% de bacterias.',
+    details: '60ml | Portátil',
+    benefits: ['Desinfecta', 'Portátil'],
+    category: 'Cuidado Personal',
+    type: 'General'
+  },
+  {
+    id: 10,
+    name: 'Shampoo anticaspa',
+    brand: 'HairCare',
+    price: '13.00',
+    image: '/vite.svg',
+    description: 'Elimina la caspa y fortalece el cabello.',
+    details: '250ml | Uso diario',
+    benefits: ['Elimina caspa', 'Fortalece cabello'],
+    category: 'Cuidado Personal',
+    type: 'Cabello'
+  },
+
+  // Suplementos
+  {
+    id: 11,
+    name: 'Vitamina C 1000mg',
+    brand: 'SaludPlus',
+    price: '9.99',
+    image: '/vite.svg',
+    description: 'Suplemento de vitamina C de alta potencia que refuerza el sistema inmunológico y antioxidante del cuerpo.',
+    details: '1000mg por tableta | 60 tabletas por envase | Apto para veganos',
+    benefits: ['Refuerza inmunidad', 'Antioxidante natural', 'Reduce fatiga'],
+    category: 'Suplementos',
+    type: 'Vitaminas'
+  },
+  {
+    id: 12,
+    name: 'Omega 3',
+    brand: 'NutriLife',
+    price: '16.00',
+    image: '/vite.svg',
+    description: 'Suplemento de ácidos grasos esenciales para la salud cardiovascular.',
+    details: '1000mg por cápsula | 60 cápsulas',
+    benefits: ['Salud cardiovascular', 'Reduce colesterol'],
+    category: 'Suplementos',
+    type: 'Nutrientes'
+  },
+  {
+    id: 13,
+    name: 'Multivitamínico',
+    brand: 'VitaMix',
+    price: '14.50',
+    image: '/vite.svg',
+    description: 'Complejo de vitaminas y minerales para energía y bienestar.',
+    details: '60 tabletas | Apto para adultos',
+    benefits: ['Energía', 'Bienestar general'],
+    category: 'Suplementos',
+    type: 'Vitaminas'
+  },
+  {
+    id: 14,
+    name: 'Colágeno hidrolizado',
+    brand: 'BeautyColl',
+    price: '22.00',
+    image: '/vite.svg',
+    description: 'Mejora la salud de la piel, cabello y articulaciones.',
+    details: '300g | Sabor neutro',
+    benefits: ['Piel saludable', 'Articulaciones'],
+    category: 'Suplementos',
+    type: 'Belleza'
+  },
+  {
+    id: 15,
+    name: 'Magnesio',
+    brand: 'MineralMax',
+    price: '11.00',
+    image: '/vite.svg',
+    description: 'Suplemento para músculos y sistema nervioso.',
+    details: '500mg por tableta | 60 tabletas',
+    benefits: ['Músculos', 'Sistema nervioso'],
+    category: 'Suplementos',
+    type: 'Minerales'
+  },
+
+  // Higiene
+  {
+    id: 16,
+    name: 'Jabón antibacterial',
+    brand: 'CleanSoap',
+    price: '3.80',
+    image: '/vite.svg',
+    description: 'Elimina bacterias y deja la piel suave.',
+    details: '100g | Aroma fresco',
+    benefits: ['Elimina bacterias', 'Suaviza piel'],
+    category: 'Higiene',
+    type: 'General'
+  },
+  {
+    id: 17,
+    name: 'Pasta dental',
+    brand: 'SmileDent',
+    price: '5.20',
+    image: '/vite.svg',
+    description: 'Protege dientes y encías.',
+    details: '90g | Protección total',
+    benefits: ['Protege dientes', 'Refresca boca'],
+    category: 'Higiene',
+    type: 'Bucal'
+  },
+  {
+    id: 18,
+    name: 'Desodorante roll-on',
+    brand: 'FreshRoll',
+    price: '7.50',
+    image: '/vite.svg',
+    description: 'Protección contra el sudor y mal olor.',
+    details: '50ml | 24h protección',
+    benefits: ['Protección 24h', 'Frescura'],
+    category: 'Higiene',
+    type: 'Corporal'
+  },
+  {
+    id: 19,
+    name: 'Toallas húmedas',
+    brand: 'SoftWipes',
+    price: '6.00',
+    image: '/vite.svg',
+    description: 'Limpieza rápida y suave para la piel.',
+    details: '20 unidades | Suave',
+    benefits: ['Limpieza rápida', 'Suave'],
+    category: 'Higiene',
+    type: 'General'
+  },
+  {
+    id: 20,
+    name: 'Alcohol en gel',
+    brand: 'SafeGel',
+    price: '4.80',
+    image: '/vite.svg',
+    description: 'Desinfecta manos y elimina gérmenes.',
+    details: '100ml | Portátil',
+    benefits: ['Desinfecta', 'Portátil'],
+    category: 'Higiene',
+    type: 'General'
+  },
+  {
+    id: 21,
+    name: 'Omeprazol 20 Mg Caja Con 10 Cápsulas',
+    brand: 'Genfar',
+    price: '9.20',
+    image: '/images/medicamentos/gastrointestinales/6)comprar-en-cafam-omeprazol-20-mg-caja-con-10-capsulas-precio.webp',
+    description: 'Omeprazol 20 Mg Caja Con 10 Cápsulas',
+    details: '20mg por cápsula | 10 cápsulas',
+    benefits: ['Reduce acidez', 'Alivia reflujo'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 22,
+    name: 'Hidraplus 75 Suero Oral Cereza 400ml',
+    brand: 'Hidraplus',
+    price: '6.30',
+    image: '/images/medicamentos/hidratacion/1)comprar-en-cafam-hidraplus-75-suero-oral-sabor-cereza-frasco-con-400-ml-precio.webp',
+    description: 'Solución oral para reponer líquidos y electrolitos.',
+    details: '400ml | Sabor cereza',
+    benefits: ['Rehidrata', 'Equilibra electrolitos'],
+    category: 'Medicamentos',
+    type: 'Hidratación'
+  },
+  {
+    id: 1011,
+    name: 'Pedialyte 60 con Zinc Uva 500ml',
+    brand: 'Pedialyte',
+    price: '10.90',
+    image: '/images/medicamentos/hidratacion/2)comprar-en-cafam-pedialyte-60-con-zinc-solucion-frasco-con-500-ml-sabor-uva-precio.webp',
+    description: 'Solución de rehidratación oral con zinc, sabor uva.',
+    details: '500ml | 60 mEq | Con zinc',
+    benefits: ['Rehidrata rápido', 'Repone electrolitos'],
+    category: 'Medicamentos',
+    type: 'Hidratación'
+  },
+  {
+    id: 1012,
+    name: 'Pedialyte Max 60 con Zinc Fresa 500ml',
+    brand: 'Pedialyte',
+    price: '11.50',
+    image: '/images/medicamentos/hidratacion/3)comprar-en-cafam-pedialyte-max-60-meq-con-zinc-frasco-con-500-ml-fresa-precio.webp',
+    description: 'Rehidratación oral avanzada con zinc, sabor fresa.',
+    details: '500ml | 60 mEq | Con zinc',
+    benefits: ['Recupera hidratación', 'Aporta electrolitos'],
+    category: 'Medicamentos',
+    type: 'Hidratación'
+  },
+  {
+    id: 1013,
+    name: 'Pedialyte Max 60 con Zinc Coco 500ml',
+    brand: 'Pedialyte',
+    price: '11.50',
+    image: '/images/medicamentos/hidratacion/4)comprar-en-cafam-pedialyte-max-60-meq-con-zinc-frasco-con-500-ml-coco-precio.webp',
+    description: 'Solución oral con zinc para hidratación en episodios de deshidratación.',
+    details: '500ml | 60 mEq | Sabor coco',
+    benefits: ['Hidratación efectiva', 'Repone sales minerales'],
+    category: 'Medicamentos',
+    type: 'Hidratación'
+  },
+  {
+    id: 1014,
+    name: 'Suero Rehidratante Jamaica 625ml',
+    brand: 'Electrolit',
+    price: '9.80',
+    image: '/images/medicamentos/hidratacion/5)comprar-en-cafam-suero-rehidratante-sabor-jamaica-frasco-con-625-ml-precio.jpg',
+    description: 'Suero rehidratante oral sabor jamaica para recuperación rápida.',
+    details: '625ml | Sabor jamaica',
+    benefits: ['Rehidratación oral', 'Ayuda en pérdidas de líquidos'],
+    category: 'Medicamentos',
+    type: 'Hidratación'
+  },
+  {
+    id: 1015,
+    name: 'Electrolit Mora Azul 625ml',
+    brand: 'Electrolit',
+    price: '9.80',
+    image: '/images/medicamentos/hidratacion/6)comprar-en-cafam-suero-rehidratante-electrolit-sabor-mora-azul-frasco-con-625-ml-precio.jpg',
+    description: 'Bebida de rehidratación con electrolitos, sabor mora azul.',
+    details: '625ml | Sabor mora azul',
+    benefits: ['Repone líquidos', 'Repone electrolitos'],
+    category: 'Medicamentos',
+    type: 'Hidratación'
+  },
+  {
+    id: 1016,
+    name: 'Pedialyte 45 Fresa 500ml',
+    brand: 'Pedialyte',
+    price: '9.90',
+    image: '/images/medicamentos/hidratacion/7)comprar-en-cafam-pedialyte-45-sabor-fresa-frasco-con-500-ml-precio.webp',
+    description: 'Solución de rehidratación oral, ideal para reposición de líquidos.',
+    details: '500ml | 45 mEq | Sabor fresa',
+    benefits: ['Hidratación rápida', 'Balance de electrolitos'],
+    category: 'Medicamentos',
+    type: 'Hidratación'
+  },
+  {
+    id: 23,
+    name: 'Crema reparadora de manos',
+    brand: 'SoftSkin',
+    price: '12.40',
+    image: '/vite.svg',
+    description: 'Hidrata y repara la piel reseca.',
+    details: '80ml | Fórmula ligera',
+    benefits: ['Hidratación', 'Repara piel'],
+    category: 'Cuidado Personal',
+    type: 'Cremas'
+  },
+  {
+    id: 24,
+    name: 'Enjuague bucal menta',
+    brand: 'FreshMint',
+    price: '8.90',
+    image: '/vite.svg',
+    description: 'Ayuda a combatir bacterias y refrescar el aliento.',
+    details: '500ml | Sin alcohol',
+    benefits: ['Aliento fresco', 'Protección bucal'],
+    category: 'Cuidado Personal',
+    type: 'Bucal'
+  },
+  {
+    id: 25,
+    name: 'Zinc 50mg',
+    brand: 'NutriZinc',
+    price: '10.50',
+    image: '/vite.svg',
+    description: 'Apoyo al sistema inmune y salud de la piel.',
+    details: '50mg por tableta | 60 tabletas',
+    benefits: ['Apoya inmunidad', 'Salud de la piel'],
+    category: 'Suplementos',
+    type: 'Minerales'
+  },
+  {
+    id: 26,
+    name: 'Jabón líquido para manos',
+    brand: 'PureHands',
+    price: '7.10',
+    image: '/vite.svg',
+    description: 'Limpieza suave con aroma cítrico.',
+    details: '300ml | Uso diario',
+    benefits: ['Limpieza suave', 'Aroma cítrico'],
+    category: 'Higiene',
+    type: 'General'
+  },
+  {
+    id: 27,
+    name: 'Naproxeno 550mg',
+    brand: 'DolorFree',
+    price: '10.80',
+    image: '/vite.svg',
+    description: 'Antiinflamatorio para dolor muscular y articular.',
+    details: '550mg por tableta | 12 tabletas',
+    benefits: ['Reduce dolor', 'Disminuye inflamacion'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 28,
+    name: 'Muxol Adultos Jarabe Caja Con Frasco Con 120 Ml.',
+    brand: 'FrioStop',
+    price: '8.40',
+    image: '/images/medicamentos/resfrios/2)comprar-en-cafam-muxol-adultos-jarabe-caja-con-frasco-con-120-ml-precio.webp',
+    description: 'Muxol Adultos Jarabe Caja Con Frasco Con 120 Ml.',
+    details: 'Sobres solubles | Sabor naranja',
+    benefits: ['Alivia congestion', 'Reduce malestar'],
+    category: 'Medicamentos',
+    type: 'Resfríos'
+  },
+  {
+    id: 29,
+    name: 'Bisolvon Max Caja Con Frasco Con 120 Ml.',
+    brand: 'Bisolvon',
+    price: '6.90',
+    image: '/images/medicamentos/resfrios/5)comprar-en-cafam-bisolvon-max-jarabe-caja-con-frasco-con-120-ml-precio.webp',
+    description: 'Bisolvon Max Caja Con Frasco Con 120 Ml.',
+    details: '15ml | Accion rapida',
+    benefits: ['Descongestiona', 'Facil aplicacion'],
+    category: 'Medicamentos',
+    type: 'Resfríos'
+  },
+  {
+    id: 1021,
+    name: 'Ambroxol Pediátrico 15mg/5ml 120ml',
+    brand: 'Tecnoquímicas',
+    price: '9.20',
+    image: '/images/medicamentos/resfrios/1)ambroxol-15-mg-5-ml-frasco-x-120-ml-jarabe-pediatrico-tecnoquimicas-.webp',
+    description: 'Jarabe pediátrico para aliviar la tos con flema.',
+    details: '120ml | 15mg/5ml',
+    benefits: ['Alivia tos', 'Ayuda a expulsar flema'],
+    category: 'Medicamentos',
+    type: 'Resfríos'
+  },
+  {
+    id: 1022,
+    name: 'Muxol Niños Jarabe 120ml',
+    brand: 'Muxol',
+    price: '10.50',
+    image: '/images/medicamentos/resfrios/3)comprar-en-cafam-muxol-ninos-jarabe-caja-con-frasco-con-120-ml-precio.webp',
+    description: 'Jarabe infantil para tos y congestión de vías respiratorias.',
+    details: '120ml | Uso pediátrico',
+    benefits: ['Descongestiona', 'Alivia tos infantil'],
+    category: 'Medicamentos',
+    type: 'Resfríos'
+  },
+  {
+    id: 1023,
+    name: 'Muxol Flem Niños Jarabe 120ml',
+    brand: 'Muxol',
+    price: '10.90',
+    image: '/images/medicamentos/resfrios/4)comprar-en-cafam-muxol-flem-ninos-jarabe-caja-con-frasco-con-120-ml-precio.webp',
+    description: 'Jarabe para niños que ayuda a fluidificar secreciones.',
+    details: '120ml | Fórmula pediátrica',
+    benefits: ['Facilita expulsión de flema', 'Alivia congestión'],
+    category: 'Medicamentos',
+    type: 'Resfríos'
+  },
+  {
+    id: 1024,
+    name: 'Ambroxol MK Adultos 30mg/5ml 120ml',
+    brand: 'MK',
+    price: '9.80',
+    image: '/images/medicamentos/resfrios/6)jarabe-ambroxol-mk-30-mg5ml-para-adultos-120-ml.webp',
+    description: 'Jarabe expectorante para adultos con tos productiva.',
+    details: '120ml | 30mg/5ml',
+    benefits: ['Disminuye mucosidad', 'Mejora respiración'],
+    category: 'Medicamentos',
+    type: 'Resfríos'
+  },
+  {
+    id: 30,
+    name: 'Ibuprofeno pediatrico',
+    brand: 'KidsCare',
+    price: '9.60',
+    image: '/vite.svg',
+    description: 'Suspension para fiebre y dolor en ninos.',
+    details: '100ml | Sabor fresa',
+    benefits: ['Reduce fiebre', 'Alivia dolor'],
+    category: 'Medicamentos',
+    type: 'Analgésicos'
+  },
+  {
+    id: 31,
+    name: 'Esomeprazol 20 Mg Caja Con 30 Tabletas',
+    brand: 'Genfar',
+    price: '7.30',
+    image: '/images/medicamentos/gastrointestinales/4)comprar-en-cafam-esomeprazol-20-mg-caja-con-30-tabletas-precio.webp',
+    description: 'Esomeprazol 20 Mg Caja Con 30 Tabletas',
+    details: '24 tabletas | Sabor menta',
+    benefits: ['Alivio rapido', 'Reduce acidez'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 1001,
+    name: 'Nedox Esomeprazol 20mg x14',
+    brand: 'Nedox',
+    price: '11.90',
+    image: '/images/medicamentos/gastrointestinales/1)nedox-esomeprazol-20-mg-14-tabletas-gastrorresistentes.webp',
+    description: 'Protector gástrico para control de acidez y reflujo.',
+    details: '20mg por tableta | 14 tabletas gastrorresistentes',
+    benefits: ['Controla acidez', 'Alivia reflujo'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 1002,
+    name: 'Nedox Esomeprazol 20mg x56',
+    brand: 'Nedox',
+    price: '22.50',
+    image: '/images/medicamentos/gastrointestinales/2)Nedox-Esomeprazol-20Mg-Oral-Caja-X56-Tabletas.webp',
+    description: 'Tratamiento prolongado para acidez y protección gástrica.',
+    details: '20mg por tableta | 56 tabletas',
+    benefits: ['Tratamiento continuo', 'Protección gástrica'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 1003,
+    name: 'Esomeprazol 40mg x30',
+    brand: 'Genfar',
+    price: '24.90',
+    image: '/images/medicamentos/gastrointestinales/3)comprar-en-cafam-esomeprazol-40-mg-con-30-tabletas-precio.webp',
+    description: 'Dosis alta para manejo de reflujo gastroesofágico.',
+    details: '40mg por tableta | 30 tabletas',
+    benefits: ['Disminuye acidez', 'Alivia ardor estomacal'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 1004,
+    name: 'Esomeprazol 20mg x10',
+    brand: 'MK',
+    price: '8.90',
+    image: '/images/medicamentos/gastrointestinales/5)comprar-en-cafam-esomeprazol-20-mg-caja-con-10-tabletas-cubiertas-precio.webp',
+    description: 'Opción práctica para episodios de acidez ocasional.',
+    details: '20mg por tableta | 10 tabletas cubiertas',
+    benefits: ['Acción eficaz', 'Presentación práctica'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 1005,
+    name: 'Omeprazol 20mg x30',
+    brand: 'LA SANTÉ',
+    price: '13.20',
+    image: '/images/medicamentos/gastrointestinales/7)comprar-en-cafam-omeprazol-20-mg-caja-con-30-capsulas-precio.webp',
+    description: 'Disminuye la producción de ácido para cuidado gástrico diario.',
+    details: '20mg por cápsula | 30 cápsulas',
+    benefits: ['Control de acidez', 'Apoyo gástrico diario'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 1006,
+    name: 'Esomeprazol 40mg Liberación Retardada',
+    brand: 'La Santé',
+    price: '26.40',
+    image: '/images/medicamentos/gastrointestinales/8)esomeprazol-40-mg-la-sante-30-tabletas-de-liberacion-retardada.webp',
+    description: 'Formulación de liberación retardada para alivio sostenido.',
+    details: '40mg por tableta | 30 tabletas de liberación retardada',
+    benefits: ['Alivio prolongado', 'Menor acidez'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 1007,
+    name: 'Segregam 40mg x28',
+    brand: 'Segregam',
+    price: '28.90',
+    image: '/images/medicamentos/gastrointestinales/9)comprar-en-cafam-segregam-40-mg-caja-con-28-comprimidos-precio.webp',
+    description: 'Medicamento para control de acidez y protección gástrica.',
+    details: '40mg por comprimido | 28 comprimidos',
+    benefits: ['Controla acidez', 'Protección gástrica prolongada'],
+    category: 'Medicamentos',
+    type: 'Gastrointestinales'
+  },
+  {
+    id: 32,
+    name: 'Desmaquillante micelar',
+    brand: 'PureFace',
+    price: '14.20',
+    image: '/vite.svg',
+    description: 'Limpia y remueve maquillaje sin irritar.',
+    details: '200ml | Para todo tipo de piel',
+    benefits: ['Limpieza suave', 'No irrita'],
+    category: 'Cuidado Personal',
+    type: 'Limpieza'
+  },
+  {
+    id: 33,
+    name: 'Balsamo labial',
+    brand: 'LipCare',
+    price: '4.30',
+    image: '/vite.svg',
+    description: 'Hidrata y protege labios resecos.',
+    details: '4g | Con vitamina E',
+    benefits: ['Hidratacion', 'Proteccion'],
+    category: 'Cuidado Personal',
+    type: 'Labios'
+  },
+  {
+    id: 34,
+    name: 'Crema corporal nutritiva',
+    brand: 'BodySilk',
+    price: '16.70',
+    image: '/vite.svg',
+    description: 'Nutre la piel y mejora su suavidad.',
+    details: '400ml | Aroma suave',
+    benefits: ['Nutre piel', 'Suavidad'],
+    category: 'Cuidado Personal',
+    type: 'Cremas'
+  },
+  {
+    id: 35,
+    name: 'Aceite para bebe',
+    brand: 'BabySoft',
+    price: '11.80',
+      image: '/images/cuidado-personal/general/3)comprar-en-cafam-jabon-dove-baby-humectacion-sensible-frasco-con-400-ml-precio.jpg',
+    description: 'Hidrata la piel delicada del bebe.',
+    details: '200ml | Hipoalergenico',
+    benefits: ['Hidratacion', 'Suavidad'],
+    category: 'Cuidado Personal',
+    type: 'General'
+  },
+  {
+    id: 36,
+    name: 'Crema para pies',
+    brand: 'FootCare',
+    price: '9.90',
+    image: '/vite.svg',
+    description: 'Repara talones y piel reseca.',
+    details: '120ml | Con urea',
+    benefits: ['Repara piel', 'Suaviza'],
+    category: 'Cuidado Personal',
+    type: 'Cremas'
+  },
+  {
+    id: 37,
+    name: 'Vitamina D3 2000UI',
+    brand: 'SunHealth',
+    price: '12.60',
+    image: '/vite.svg',
+    description: 'Apoya huesos y sistema inmune.',
+    details: '2000UI | 60 capsulas',
+    benefits: ['Salud osea', 'Apoya inmunidad'],
+    category: 'Suplementos',
+    type: 'Vitaminas'
+  },
+  {
+    id: 38,
+    name: 'Complejo B',
+    brand: 'EnergyB',
+    price: '11.40',
+    image: '/vite.svg',
+    description: 'Ayuda al metabolismo y energia diaria.',
+    details: '30 tabletas | Liberacion rapida',
+    benefits: ['Energia', 'Metabolismo'],
+    category: 'Suplementos',
+    type: 'Vitaminas'
+  },
+  {
+    id: 39,
+    name: 'Calcio + Vitamina K2',
+    brand: 'BonePlus',
+    price: '17.90',
+    image: '/vite.svg',
+    description: 'Apoyo integral para huesos fuertes.',
+    details: '60 tabletas | Alta absorcion',
+    benefits: ['Huesos fuertes', 'Mejor absorcion'],
+    category: 'Suplementos',
+    type: 'Minerales'
+  },
+  {
+    id: 40,
+    name: 'Probioticos',
+    brand: 'BioGut',
+    price: '19.50',
+    image: '/vite.svg',
+    description: 'Equilibra la flora intestinal.',
+    details: '30 capsulas | 10 cepas',
+    benefits: ['Salud digestiva', 'Equilibrio intestinal'],
+    category: 'Suplementos',
+    type: 'Nutrientes'
+  },
+  {
+    id: 41,
+    name: 'Hierro 18mg',
+    brand: 'HemoVital',
+    price: '9.70',
+    image: '/vite.svg',
+    description: 'Apoyo para niveles saludables de hierro.',
+    details: '18mg | 60 tabletas',
+    benefits: ['Apoya energia', 'Salud sanguinea'],
+    category: 'Suplementos',
+    type: 'Minerales'
+  },
+  {
+    id: 42,
+    name: 'Cepillo dental suave',
+    brand: 'SmileSoft',
+    price: '3.50',
+    image: '/vite.svg',
+    description: 'Cerdas suaves para limpieza diaria.',
+    details: 'Cerdas suaves | Cabezal compacto',
+    benefits: ['Limpieza suave', 'Protege encias'],
+    category: 'Higiene',
+    type: 'Bucal'
+  },
+  {
+    id: 43,
+    name: 'Hilo dental',
+    brand: 'DentCare',
+    price: '4.10',
+    image: '/vite.svg',
+    description: 'Elimina restos entre dientes.',
+    details: '50m | Encerado',
+    benefits: ['Limpieza profunda', 'Protege encias'],
+    category: 'Higiene',
+    type: 'Bucal'
+  },
+  {
+    id: 44,
+    name: 'Gel de ducha',
+    brand: 'FreshBody',
+    price: '8.20',
+    image: '/vite.svg',
+    description: 'Limpieza diaria con aroma fresco.',
+    details: '500ml | pH balanceado',
+    benefits: ['Limpieza diaria', 'Aroma fresco'],
+    category: 'Higiene',
+    type: 'Corporal'
+  },
+  {
+    id: 45,
+    name: 'Papel higienico doble hoja',
+    brand: 'SoftRoll',
+    price: '6.80',
+    image: '/vite.svg',
+    description: 'Suavidad y resistencia para uso diario.',
+    details: '4 rollos | Doble hoja',
+    benefits: ['Suavidad', 'Resistencia'],
+    category: 'Higiene',
+    type: 'General'
+  },
+  {
+    id: 46,
+    name: 'Alcohol 70%',
+    brand: 'CleanPro',
+    price: '5.60',
+    image: '/vite.svg',
+    description: 'Desinfeccion rapida para superficies.',
+    details: '250ml | Uso multiuso',
+    benefits: ['Desinfecta', 'Uso diario'],
+    category: 'Higiene',
+    type: 'General'
+  },
+]
+
+const App = () => {
+  const maxPrice = Math.max(...sampleProducts.map(p => parseFloat(p.price)), 100)
+  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [pendingScrollId, setPendingScrollId] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [headerFilter, setHeaderFilter] = useState({ priceRange: [0, maxPrice], brands: [], type: null })
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false)
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const safeParse = (value, fallback) => {
+    if (!value) return fallback
+    try {
+      return JSON.parse(value)
+    } catch (error) {
+      return fallback
+    }
+  }
+
+  const safeStorageSet = (key, value) => {
+    try {
+      localStorage.setItem(key, value)
+    } catch (error) {
+      // Ignore storage write errors (quota, blocked storage, etc.)
+    }
+  }
+
+  const safeStorageRemove = (key) => {
+    try {
+      localStorage.removeItem(key)
+    } catch (error) {
+      // Ignore storage remove errors
+    }
+  }
+
+  useEffect(() => {
+    const storedSearch = localStorage.getItem('searchTerm')
+    const storedCategory = localStorage.getItem('selectedCategory')
+    const storedHeaderFilter = localStorage.getItem('headerFilter')
+
+    if (storedSearch) {
+      setSearchTerm(storedSearch)
+    }
+
+    if (storedCategory) {
+      setSelectedCategory(storedCategory)
+    }
+
+    if (storedHeaderFilter) {
+      const parsed = safeParse(storedHeaderFilter, null)
+      if (Array.isArray(parsed?.priceRange) && Array.isArray(parsed?.brands)) {
+        setHeaderFilter({
+          priceRange: [parsed.priceRange[0] ?? 0, parsed.priceRange[1] ?? maxPrice],
+          brands: parsed.brands
+        })
+      } else {
+        safeStorageRemove('headerFilter')
+      }
+    }
+  }, [maxPrice])
+
+  useEffect(() => {
+    safeStorageSet('searchTerm', searchTerm)
+  }, [searchTerm])
+
+  useEffect(() => {
+    if (selectedCategory) {
+      safeStorageSet('selectedCategory', selectedCategory)
+    } else {
+      safeStorageRemove('selectedCategory')
+    }
+  }, [selectedCategory])
+
+  useEffect(() => {
+    safeStorageSet('headerFilter', JSON.stringify(headerFilter))
+  }, [headerFilter])
+
+  useEffect(() => {
+    if (!user && (location.pathname === '/carrito' || location.pathname === '/ordenes')) {
+      navigate('/', { replace: true })
+    }
+  }, [user, location.pathname, navigate])
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (location.pathname === '/' && location.state?.scrollTo) {
+      setPendingScrollId(location.state.scrollTo)
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.pathname, location.state, navigate])
+
+  useEffect(() => {
+    if (location.pathname === '/' && pendingScrollId) {
+      requestAnimationFrame(() => {
+        document.getElementById(pendingScrollId)?.scrollIntoView({ behavior: 'smooth' })
+      })
+      setPendingScrollId(null)
+    }
+  }, [location.pathname, pendingScrollId])
+
+  useEffect(() => {
+    const productFromPath = location.pathname.startsWith('/producto/')
+      ? sampleProducts.find((product) => product.id === parseInt(location.pathname.split('/producto/')[1]))
+      : null
+    let title = 'Mi Farmacia'
+    let description = 'Tienda en linea de salud y bienestar con productos de farmacia.'
+    if (location.pathname === '/carrito') {
+      title = 'Carrito | Mi Farmacia'
+      description = 'Revisa tu carrito y finaliza tu pedido.'
+    } else if (location.pathname === '/ordenes') {
+      title = 'Mis Ordenes | Mi Farmacia'
+      description = 'Consulta tu historial de ordenes.'
+    } else if (productFromPath) {
+      title = `${productFromPath.name} | Mi Farmacia`
+      description = productFromPath.description || description
+    } else if (location.pathname === '/') {
+      title = 'Inicio | Mi Farmacia'
+    }
+    document.title = title
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription) {
+      metaDescription.setAttribute('content', description)
+    }
+  }, [location.pathname])
+
+  const handleFilterByCategory = (category, type = null) => {
+    setSelectedCategory(category || null);
+    if (type) {
+      setHeaderFilter(prev => ({
+        ...prev,
+        type: prev.type === type ? null : type
+      }));
+    }
+  }
+
+  const handleHeaderSearchSubmit = (term) => {
+    setSearchTerm(term)
+    setSelectedCategory(null)
+    if (term.trim().length > 0 && location.pathname !== '/productos') {
+      navigate('/productos')
+    }
+  }
+
+  const handleHeaderBrandSelect = (brand, term = '') => {
+    setSelectedCategory(null)
+    setSearchTerm(term)
+    setHeaderFilter({ priceRange: [0, maxPrice], brands: [brand], type: null })
+    if (location.pathname !== '/productos') {
+      navigate('/productos')
+    }
+  }
+
+  const handleHeaderCategorySelect = (category, term = '') => {
+    setSelectedCategory(category || null)
+    setSearchTerm(term)
+    setHeaderFilter({ priceRange: [0, maxPrice], brands: [], type: null })
+    if (location.pathname !== '/productos') {
+      navigate('/productos')
+    }
+  }
+
+  const handlePageSearchTermChange = (term) => {
+    setSearchTerm(term)
+    setSelectedCategory(null)
+    if (term.trim().length > 0 && location.pathname !== '/productos') {
+      navigate('/productos')
+    }
+  }
+
+  const handleHeaderFilterChange = (filter) => {
+    setHeaderFilter(filter)
+  }
+
+  const handleClearFilters = () => {
+    setSelectedCategory(null)
+    setSearchTerm('')
+    setHeaderFilter({ priceRange: [0, maxPrice], brands: [], type: null })
+    safeStorageRemove('searchTerm')
+    safeStorageRemove('selectedCategory')
+    safeStorageRemove('headerFilter')
+  }
+
+  const handleNavigateToSection = (sectionId) => {
+    if (sectionId === 'top') {
+      handleClearFilters()
+      setPendingScrollId(null)
+      if (location.pathname !== '/') {
+        navigate('/', { replace: true })
+      }
+      requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+      return
+    }
+    setPendingScrollId(sectionId)
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: sectionId } })
+    }
+  }
+
+  const handleNavigateToProducts = () => {
+    navigate('/productos')
+  }
+
+  const filteredProducts = useMemo(() => {
+    let list = sampleProducts
+    if (selectedCategory) {
+      list = list.filter(product => product.category === selectedCategory)
+    }
+    if (searchTerm.trim().length > 0) {
+      const term = searchTerm.toLowerCase()
+      list = list.filter(product =>
+        product.name.toLowerCase().includes(term) ||
+        product.brand.toLowerCase().includes(term)
+      )
+    }
+    if (headerFilter) {
+      const [minPrice, maxPriceFilter] = headerFilter.priceRange
+      list = list.filter(product => {
+        const price = parseFloat(product.price)
+        const inPriceRange = price >= minPrice && price <= maxPriceFilter
+        const inBrands = headerFilter.brands.length === 0 || headerFilter.brands.includes(product.brand)
+        const inType = !headerFilter.type || product.type === headerFilter.type
+        return inPriceRange && inBrands && inType
+      })
+    }
+    return list
+  }, [selectedCategory, searchTerm, headerFilter])
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow
+    const originalTouchAction = document.body.style.touchAction
+
+    if (isSearchDropdownOpen) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.touchAction = 'none'
+    } else {
+      document.body.style.overflow = originalOverflow || ''
+      document.body.style.touchAction = originalTouchAction || ''
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow || ''
+      document.body.style.touchAction = originalTouchAction || ''
+    }
+  }, [isSearchDropdownOpen])
+
+  const ProductDetailRoute = () => {
+    const { id } = useParams()
+    const productId = parseInt(id, 10)
+    const product = sampleProducts.find((item) => item.id === productId)
+    return <ProductDetail product={product} />
+  }
+
+
+  const HomePage = () => (
+    <>
+      <HomeCarousel
+        onPrimaryAction={handleNavigateToProducts}
+        onNavigateToSection={handleNavigateToSection}
+      />
+      <BenefitsStrip />
+      <ScrollReveal delay={0.1}>
+        <CategoriesSection
+          onCategorySelect={(category) => {
+            handleFilterByCategory(category)
+            handleNavigateToProducts()
+          }}
+        />
+      </ScrollReveal>
+      <ScrollReveal delay={0.1}>
+        <TopSellersSection products={sampleProducts} onNavigateToProducts={handleNavigateToProducts} />
+      </ScrollReveal>
+      <ScrollReveal delay={0.1}>
+        <BrandsStrip products={sampleProducts} />
+      </ScrollReveal>
+      <ScrollReveal delay={0.1}>
+        <SpecialOffersSection products={sampleProducts} />
+      </ScrollReveal>
+      <ScrollReveal delay={0.1}>
+        <HomeCta
+          onNavigateToProducts={handleNavigateToProducts}
+          onNavigateToSection={handleNavigateToSection}
+        />
+      </ScrollReveal>
+      <ScrollReveal delay={0.1}>
+        <Footer />
+      </ScrollReveal>
+    </>
+  )
+
+  return (
+    <MotionConfig transition={{ duration: 0.5, ease: PREMIUM_EASE }}>
+      <CartProvider>
+        <Header
+          products={sampleProducts}
+          onSearchSubmit={handleHeaderSearchSubmit}
+          onSearchDropdownOpenChange={setIsSearchDropdownOpen}
+          onBrandSelect={handleHeaderBrandSelect}
+          onCategorySelect={handleHeaderCategorySelect}
+          onFilterByCategory={handleFilterByCategory}
+          onNavigateToSection={handleNavigateToSection}
+          onNavigateToProducts={handleNavigateToProducts}
+        />
+        <div className={`transition-all duration-200 ${isSearchDropdownOpen ? 'blur-sm' : ''}`}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/productos"
+              element={(
+                <ProductsPage
+                  products={filteredProducts}
+                  allProducts={sampleProducts}
+                  selectedCategory={selectedCategory}
+                  headerFilter={headerFilter}
+                  searchTerm={searchTerm}
+                  onSelectCategory={handleFilterByCategory}
+                  onFilterChange={handleHeaderFilterChange}
+                  onClearFilters={handleClearFilters}
+                  onSearchTermChange={handlePageSearchTermChange}
+                />
+              )}
+            />
+            <Route path="/carrito" element={user ? <CartPage /> : <Navigate to="/" replace />} />
+            <Route path="/ordenes" element={user ? <OrderHistory /> : <Navigate to="/" replace />} />
+            <Route path="/producto/:id" element={<ProductDetailRoute />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </CartProvider>
+    </MotionConfig>
+  )
+}
+
+export default App
