@@ -1,16 +1,91 @@
-# React + Vite
+# 💊 Mi Farmacia - Tienda de Farmacia Online
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma de e-commerce para venta de productos farmacéuticos con carrito de compras, autenticación y catálogo organizado.
 
-Currently, two official plugins are available:
+## 🏗️ Estructura del Proyecto
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+mi-farmacia/
+├── src/                    # Frontend (React + Vite)
+│   ├── components/        # Componentes reutilizables
+│   ├── pages/             # Páginas (Home, Productos, Carrito)
+│   ├── context/           # Contextos (Auth, Cart, UI)
+│   ├── hooks/             # Hooks personalizados
+│   ├── utils/             # Utilidades y funciones
+│   └── App.jsx           # Componente principal
+├── backend/               # API REST (Express + PostgreSQL)
+│   ├── server.js         # Configuración del servidor
+│   └── database.sql      # Esquema de base de datos
+├── public/               # Assets estáticos
+├── vercel.json          # Configuración para Vercel
+└── package.json         # Dependencias del frontend
+```
 
-## React Compiler
+## 🛠️ Tecnologías
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Frontend
+- **React 19** - Librería de UI
+- **Vite** - Build tool ultra rápido
+- **TailwindCSS** - Estilos
+- **React Router** - Navegación
+- **Firebase** - Autenticación
+- **Framer Motion** - Animaciones
 
-## Expanding the ESLint configuration
+### Backend
+- **Node.js + Express** - API REST
+- **PostgreSQL** - Base de datos
+- **JWT** - Autenticación
+- **CORS** - Control de solicitudes
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Instalación Local
+
+### Frontend
+```bash
+npm install
+npm run dev
+```
+
+### Backend
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+**Variables de entorno** (crear `.env` en backend/):
+```
+DB_USER=tu_usuario
+DB_HOST=localhost
+DB_NAME=farmacia
+DB_PASSWORD=tu_contraseña
+DB_PORT=5432
+PORT=5000
+```
+
+## 📦 Scripts Disponibles
+
+```bash
+# Frontend
+npm run dev        # Desarrollo
+npm run build      # Producción
+npm run preview    # Vista previa del build
+npm run lint       # Verificar código
+npm run test       # Tests
+
+# Backend
+npm run start      # Producción
+npm run dev        # Desarrollo con nodemon
+```
+
+## 🌐 Despliegue
+
+- **Frontend**: Vercel (automático desde GitHub)
+- **Backend**: Railway, Render o tu servidor preferido
+
+## 📄 Licencia
+
+MIT - Libre para usar en proyectos personales y comerciales
+
+---
+
+**¿Preguntas o sugerencias?** Abre un issue en el repositorio.
